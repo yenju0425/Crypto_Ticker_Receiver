@@ -19,8 +19,16 @@ class TickerReceiver {
 public:
     TickerReceiver();
 
-    void subscribe(const std::string& exchange, const std::string& currencyPair);
-    void unsubscribe(const std::string& exchange, const std::string& currencyPair);
+    Exchange* getExchange(const std::string& exchangeName);
+
+    void subscribe(const std::string& exchangeName, const int& id, const std::string& currencyPair);
+    void unsubscribe(const std::string& exchangeName, const int& id, const std::string& currencyPair);
+
+    void connect(const std::string& exchangeName);
+    void close(const std::string& exchangeName);
+
+    void showAllConnectionIds(const std::string& exchange);
+
 
 private:
     std::unordered_map<std::string, Exchange*> exchanges;

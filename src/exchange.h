@@ -2,11 +2,12 @@
 #define EXCHANGE_H
 
 #include <iostream>
-// #include <websocketpp/config/asio_no_tls_client.hpp>
-#include <websocketpp/config/asio_client.hpp>
+#include <websocketpp/config/asio_client.hpp> // #include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/common/thread.hpp>
 #include <websocketpp/common/memory.hpp>
+
+#include "connection_metadata.h"
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
@@ -17,33 +18,33 @@ using websocketpp::lib::bind;
 
 class Exchange {
 public:
-    // Method to connect to the exchange WebSocket
-    virtual void connect() = 0;
-
-    // Method to subscribe to ticker data for a specific currency pair
-    virtual void subscribeTicker(const std::string& currencyPair) = 0;
-
-    // Method to unsubscribe from ticker data for a specific currency pair
-    virtual void unsubscribeTicker(const std::string& currencyPair) = 0;
+    virtual int connect() = 0;
+    //virtual void close() = 0;
+    virtual void subscribeTicker(const int& id, const std::string& currencyPair) = 0;
+    virtual void unsubscribeTicker(const int& id, const std::string& currencyPair) = 0;
 };
 
 class KrakenExchange : public Exchange {
 public:
     KrakenExchange();
-    void connect() override;
-    void subscribeTicker(const std::string& currencyPair) override;
-    void unsubscribeTicker(const std::string& currencyPair) override;
+    ~KrakenExchange();
+    int connect() override;
+    //void close() override;
+    void subscribeTicker(const int& id, const std::string& currencyPair) override;
+    void unsubscribeTicker(const int& id, const std::string& currencyPair) override;
 
 private:
-    std::string url;
+    typedef std::map<int,connection_metadata::ptr> con_list;
+    context_ptr onTLSInit(const char* hostname, websocketpp::connection_hdl);
+    //void onMessage(websocketpp::connection_hdl hdl, client::message_ptr msg);
 
-    client endpoint;
-    websocketpp::connection_hdl hdl;
+    std::string m_url;
 
-    context_ptr onTLSInit(const char * hostname, websocketpp::connection_hdl);
-    void onMessage(websocketpp::connection_hdl hdl, client::message_ptr msg);
-
+    client m_endpoint;
     websocketpp::lib::shared_ptr<websocketpp::lib::thread> m_thread;
+
+    std::map<int,connection_metadata::ptr> m_connection_list;
+    int m_next_id;
 };
 
 #endif // EXCHANGE_H
