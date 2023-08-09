@@ -1,10 +1,24 @@
 #include <iostream>
+#include <filesystem>
+#include <chrono>
+#include <ctime>
 #include "connection_metadata.h"
+#include "exchange.h"
 
 using namespace std;
 
-connection_metadata::connection_metadata(int id, websocketpp::connection_hdl hdl, string uri)
-    : m_id(id), m_hdl(hdl), m_status("Connecting"), m_uri(uri), m_server("N/A") {}
+typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
+typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
+
+connection_metadata::connection_metadata(int id, websocketpp::connection_hdl hdl, string uri, Exchange* exchange)
+    : m_id(id), m_hdl(hdl), m_status("Connecting"), m_uri(uri), m_server("N/A"), m_exchange(exchange) {
+
+    // Create and open the file for writing
+    string path = __fs::filesystem::current_path().string(); // name followed by '::' must be a class or namespace name !!!
+    string filename = path + "/" + exchange->getName() + "_" + to_string(id) + ".txt"; // pointer to incomplete class type "Exchange" is not allowed !!!!!!!
+    
+    m_message_file.open(filename, ios::out);
+}
 
 context_ptr connection_metadata::on_tls_init(client* c, websocketpp::connection_hdl hdl) {
     context_ptr ctx = make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
@@ -21,7 +35,6 @@ context_ptr connection_metadata::on_tls_init(client* c, websocketpp::connection_
 
 void connection_metadata::on_open(client* c, websocketpp::connection_hdl hdl) {
     m_status = "Open";
-
     client::connection_ptr con = c->get_con_from_hdl(hdl);
     m_server = con->get_response_header("Server");
 }
@@ -46,7 +59,21 @@ void connection_metadata::on_close(client* c, websocketpp::connection_hdl hdl) {
 
 void connection_metadata::on_message(websocketpp::connection_hdl, client::message_ptr msg) {
     if (msg->get_opcode() == websocketpp::frame::opcode::text) {
-        cout << "<< " + msg->get_payload() << endl;
+        if (m_message_file.is_open()) {
+            if (msg->get_payload() != "{\"event\":\"heartbeat\"}") { // ignore heartbeat message
+                auto now = chrono::system_clock::now();
+                time_t time_now = chrono::system_clock::to_time_t(now);
+
+                char timestamp_buffer[80];
+                strftime(timestamp_buffer, sizeof(timestamp_buffer), "[%Y-%m-%d %H:%M:%S] ", localtime(&time_now));
+
+                m_message_file << timestamp_buffer << "<< " + msg->get_payload() << endl;
+                // m_message_file.flush();
+            }
+        }
+        else {
+            cout << "Error: file is not open" << endl;
+        }
     } else {
         m_messages.push_back("<< " + websocketpp::utility::to_hex(msg->get_payload()));
     }

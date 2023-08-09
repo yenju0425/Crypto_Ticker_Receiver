@@ -3,17 +3,19 @@
 
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include <websocketpp/client.hpp>
 #include <websocketpp/config/asio_client.hpp>
 
-typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
-typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
+class Exchange;
 
 class connection_metadata {
 public:
+    typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
+    typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
     typedef websocketpp::lib::shared_ptr<connection_metadata> ptr;
 
-    connection_metadata(int id, websocketpp::connection_hdl hdl, std::string uri);
+    connection_metadata(int id, websocketpp::connection_hdl hdl, std::string uri, Exchange* exchange);
 
     context_ptr on_tls_init(client* c, websocketpp::connection_hdl hdl);
     void on_open(client* c, websocketpp::connection_hdl hdl);
@@ -36,6 +38,8 @@ private:
     std::string m_server;
     std::string m_error_reason;
     std::vector<std::string> m_messages;
+    Exchange* m_exchange;
+    std::ofstream m_message_file;
 };
 
 #endif // CONNECTION_METADATA_H

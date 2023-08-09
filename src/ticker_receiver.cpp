@@ -46,7 +46,6 @@ void TickerReceiver::subscribe(const string& exchangeName, const int& id, const 
     }
 
     exchange->subscribeTicker(id, currencyPair);
-    cout << "Successfully subscribed to " << currencyPair << " on " << exchangeName << " with connection id " << id << endl;
 }
 
 void TickerReceiver::unsubscribe(const string& exchangeName, const int& id, const string& currencyPair) {
@@ -56,5 +55,4 @@ void TickerReceiver::unsubscribe(const string& exchangeName, const int& id, cons
     }
 
     exchange->unsubscribeTicker(id, currencyPair);
-    cout << "Successfully unsubscribed from " << currencyPair << " on " << exchangeName << " with connection id " << id << endl;
 }

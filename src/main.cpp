@@ -19,7 +19,14 @@ int main() {
    // Wait for 1 second before sending the payload
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    tickerReceiver.subscribe("Kraken", 0, "DOGE/USDT");
+    tickerReceiver.connect("Kraken");
+
+
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    tickerReceiver.subscribe("Kraken", 0, "ETH/USDT");
+
+    tickerReceiver.subscribe("Kraken", 1, "DOGE/USDT");
     // tickerReceiver.subscribe("Kraken", 1, "BTC/USDT");
     // tickerReceiver.subscribe("Kraken", 2, "ETH/USDT");
 
@@ -28,7 +35,7 @@ int main() {
 
 
    // Wait for 1 second before sending the payload
-    std::this_thread::sleep_for(std::chrono::seconds(30));
+    std::this_thread::sleep_for(std::chrono::seconds(300));
 
 
     return 0;
