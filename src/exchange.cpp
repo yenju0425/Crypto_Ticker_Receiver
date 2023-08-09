@@ -2,6 +2,10 @@
 
 using namespace std;
 
+using websocketpp::lib::placeholders::_1;
+using websocketpp::lib::placeholders::_2;
+using websocketpp::lib::bind;
+
 KrakenExchange::KrakenExchange() {
     m_url = "wss://ws.kraken.com";
     m_next_id = 0;
@@ -11,7 +15,6 @@ KrakenExchange::KrakenExchange() {
     m_endpoint.init_asio();                                           // Initializes the Asio transport policy.
     m_endpoint.start_perpetual();                                     // Starts the m_endpoint processing thread.
     m_endpoint.set_tls_init_handler(bind(&KrakenExchange::onTLSInit, this, m_url.c_str(), ::_1));
-    //m_endpoint.set_message_handler(bind(&KrakenExchange::onMessage, this, ::_1, ::_2));
 
     m_thread = websocketpp::lib::make_shared<websocketpp::lib::thread>(&client::run, &m_endpoint); // This is necessary to run the WebSocket event loop in a separate thread.
 }
@@ -30,35 +33,35 @@ int KrakenExchange::connect() {
     int new_id = m_next_id++;
     connection_metadata::ptr metadata_ptr = websocketpp::lib::make_shared<connection_metadata>(new_id, con->get_handle(), m_url);
     m_connection_list[new_id] = metadata_ptr;
-    con->set_tls_init_handler(websocketpp::lib::bind(
+    con->set_tls_init_handler(bind(
         &connection_metadata::on_tls_init,
         metadata_ptr,
         &m_endpoint,
-        websocketpp::lib::placeholders::_1
+        ::_1
     ));
-    con->set_open_handler(websocketpp::lib::bind(
+    con->set_open_handler(bind(
         &connection_metadata::on_open,
         metadata_ptr,
         &m_endpoint,
-        websocketpp::lib::placeholders::_1
+        ::_1
     ));
-    con->set_fail_handler(websocketpp::lib::bind(
+    con->set_fail_handler(bind(
         &connection_metadata::on_fail,
         metadata_ptr,
         &m_endpoint,
-        websocketpp::lib::placeholders::_1
+        ::_1
     ));
-    con->set_close_handler(websocketpp::lib::bind(
+    con->set_close_handler(bind(
         &connection_metadata::on_close,
         metadata_ptr,
         &m_endpoint,
-        websocketpp::lib::placeholders::_1
+        ::_1
     ));
-    con->set_message_handler(websocketpp::lib::bind(
+    con->set_message_handler(bind(
         &connection_metadata::on_message,
         metadata_ptr,
-        websocketpp::lib::placeholders::_1,
-        websocketpp::lib::placeholders::_2
+        ::_1,
+        ::_2
     ));
 
     m_endpoint.connect(con);
@@ -99,8 +102,11 @@ context_ptr KrakenExchange::onTLSInit(const char * hostname, websocketpp::connec
     return ctx;
 }
 
-// void KrakenExchange::onMessage(websocketpp::connection_hdl hdl, client::message_ptr msg) {
-//     if (msg->get_opcode() == websocketpp::frame::opcode::text) {
-//         cout << msg->get_payload() << endl;
-//     }
-// }
+connection_metadata::ptr KrakenExchange::get_metadata(int id) const {
+    con_list::const_iterator metadata_it = m_connection_list.find(id);
+    if (metadata_it == m_connection_list.end()) {
+        return connection_metadata::ptr();
+    } else {
+        return metadata_it->second;
+    }
+}

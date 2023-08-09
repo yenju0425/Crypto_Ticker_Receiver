@@ -1,3 +1,4 @@
+#include <iostream>
 #include "ticker_receiver.h"
 
 using namespace std;
@@ -14,7 +15,6 @@ Exchange* TickerReceiver::getExchange(const std::string& exchangeName) {
             cout << exchange.first << " ";
         }
         cout << endl;
-
         return nullptr;
     }
 
@@ -22,19 +22,22 @@ Exchange* TickerReceiver::getExchange(const std::string& exchangeName) {
 }
 
 void TickerReceiver::connect(const string& exchangeName) {
-    const int connectionId = getExchange(exchangeName)->connect();
-    cout << "Connection id: " << connectionId << endl;
+    Exchange* exchange = getExchange(exchangeName);
+    if (exchange == nullptr) {
+        return;
+    }
+
+    const int connectionId = exchange->connect();
+    cout << "Successfully connected to " << exchangeName << " with connection id " << connectionId << endl;
 }
 
 void TickerReceiver::close(const string& exchangeName) {
-    //getExchange(exchangeName)->close();
+
 }
 
 void TickerReceiver::showAllConnectionIds(const string& exchangeName) {
     
 }
-
-
 
 void TickerReceiver::subscribe(const string& exchangeName, const int& id, const string& currencyPair) {
     Exchange* exchange = getExchange(exchangeName);
@@ -43,16 +46,15 @@ void TickerReceiver::subscribe(const string& exchangeName, const int& id, const 
     }
 
     exchange->subscribeTicker(id, currencyPair);
+    cout << "Successfully subscribed to " << currencyPair << " on " << exchangeName << " with connection id " << id << endl;
 }
 
-void TickerReceiver::unsubscribe(const string& exchange, const int& id, const string& currencyPair) {
-    if (exchanges.find(exchange) == exchanges.end()) {
-        cout << "Error: Exchange " << exchange << " not found. Available exchanges are: ";
-        for (auto& exchange : exchanges) {
-            cout << exchange.first << " ";
-        }
-        cout << endl;
+void TickerReceiver::unsubscribe(const string& exchangeName, const int& id, const string& currencyPair) {
+    Exchange* exchange = getExchange(exchangeName);
+    if (exchange == nullptr) {
         return;
     }
-    // exchanges[exchange]->unsubscribeTicker(currencyPair);
+
+    exchange->unsubscribeTicker(id, currencyPair);
+    cout << "Successfully unsubscribed from " << currencyPair << " on " << exchangeName << " with connection id " << id << endl;
 }

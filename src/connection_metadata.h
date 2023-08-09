@@ -1,14 +1,10 @@
 #ifndef CONNECTION_METADATA_H
 #define CONNECTION_METADATA_H
 
-#include <iostream>
 #include <vector>
 #include <sstream>
-
-#include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
-#include <websocketpp/common/thread.hpp>
-#include <websocketpp/common/memory.hpp>
+#include <websocketpp/config/asio_client.hpp>
 
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;

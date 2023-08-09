@@ -1,7 +1,6 @@
 #ifndef TICKER_RECEIVER_H
 #define TICKER_RECEIVER_H
 
-#include <iostream>
 #include <string>
 #include <unordered_map>
 #include "exchange.h"
