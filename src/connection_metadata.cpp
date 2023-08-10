@@ -27,7 +27,7 @@ context_ptr connection_metadata::on_tls_init(client* c, websocketpp::connection_
                         boost::asio::ssl::context::no_sslv3 |
                         boost::asio::ssl::context::single_dh_use);
     } catch (exception &e) {
-        cout << "Error in context pointer: " << e.what() << endl;
+        cout << "> Error in context pointer: " << e.what() << endl;
     }
     return ctx;
 }
@@ -100,7 +100,7 @@ void connection_metadata::log_message(const string& message) {
         m_message_file << timestamp_buffer << message << endl;
         m_message_file.flush();
     } else {
-        cout << "Error: file is not open" << endl;
+        cout << "> Error: file is not open" << endl;
     }
 }
 

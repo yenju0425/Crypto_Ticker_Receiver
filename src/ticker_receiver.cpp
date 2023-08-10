@@ -17,7 +17,7 @@ TickerReceiver::~TickerReceiver() {
 
 Exchange* TickerReceiver::get_exchange(const string& exchangeName) {
     if (exchanges.find(exchangeName) == exchanges.end()) {
-        cout << "Error: Exchange " << exchangeName << " not found. Available exchanges: ";
+        cout << "> Error: Exchange " << exchangeName << " not found. Available exchanges: ";
         for (auto& exchange : exchanges) {
             cout << exchange.first << " ";
         }
@@ -38,7 +38,10 @@ void TickerReceiver::connect(const string& exchangeName) {
 
     this_thread::sleep_for(chrono::seconds(2)); // Wait for 2 seconds before next command to prevent errors.
 
-    cout << "Successfully connected to " << exchangeName << " with connection id " << connectionId << endl;
+    if (connectionId >= 0) {
+        cout << "> Successfully connected to " << exchangeName << " with connection id " << connectionId << endl;
+        return;
+    }
 }
 
 void TickerReceiver::close(const string& exchangeName, const int& id, websocketpp::close::status::value code, const string& reason) {
@@ -50,8 +53,6 @@ void TickerReceiver::close(const string& exchangeName, const int& id, websocketp
     exchange->close(id, code, reason);
 
     this_thread::sleep_for(chrono::seconds(2)); // Wait for 2 seconds before next command to prevent errors.
-
-    cout << "Successfully closed connection to " << exchangeName << endl;
 }
 
 void TickerReceiver::subscribe(const string& exchangeName, const int& id, const string& currencyPair) {
@@ -81,7 +82,7 @@ void TickerReceiver::list_open_connection_ids(const string& exchangeName) {
     vector<int> ids = exchange->get_open_connection_ids();
 
     stringstream ss;
-    ss << "Open connection ids for " << exchangeName << ": ";
+    ss << "> Open connection ids for " << exchangeName << ": ";
     for (auto& id : ids) {
         ss << id << " ";
     }

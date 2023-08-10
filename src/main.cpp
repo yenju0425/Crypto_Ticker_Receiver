@@ -2,34 +2,57 @@
 
 using namespace std;
 
+void displayHelp() {
+    cout
+        << "\nCommand List:\n"
+        << "connect <exchange name>                         - Connect to an exchange (e.g. Kraken)\n"
+        << "subscribe <exchange name> <id> <pair>           - Subscribe to a currency pair (e.g. DOGE/USDT, ETH/USDT) on an exchange\n"
+        << "unsubscribe <exchange name> <id> <pair>         - Unsubscribe from a currency pair on an exchange\n"
+        << "close <exchange name> <id> [<code>] [<reason>]  - Close a connection to an exchange\n"
+        << "list <exchange name>                            - List open connection IDs for an exchange\n"
+        << "show <exchange name> <id>                       - Show metadata for a connection on an exchange\n"
+        << "help                                            - Display this help text\n"
+        << "quit                                            - Exit the program\n"
+        << endl;
+}
+
+void displayNote() {
+    cout
+        << "\nNotes:\n"
+        << "1. This ticker receiver can connect to multiple exchanges, although currently only `Kraken` is supported.\n"
+        << "2. Each exchange can handle multiple connections.\n"
+        << "3. Every connection can subscribe to multiple currency pairs using the subscribe/unsubscribe commands.\n"
+        << "4. All logs from the same connection will be written to a file located in the same directory where you execute the program.\n"
+        << "5. Connections will be automatically closed by the server after 60 seconds of inactivity. To maintain an active connection, subscribe to a currency pair.\n"
+        << endl;
+}
+
 int main() {
     TickerReceiver tickerReceiver;
 
     string input;
 
+    displayNote();
+    displayHelp();
+
     while (true) {
-        cout << "Enter Command: ";
+        cout << "Enter Command: " << endl;
         getline(cin, input);
 
         if (input == "quit") {
             break;
         }
         else if (input == "help") {
-            cout
-                << "\nCommand List:\n"
-                << "connect <exchange name>\n"
-                << "subscribe <exchange name> <connection id> <currency pair>\n"
-                << "unsubscribe <exchange name> <connection id> <currency pair>\n"
-                << "close <exchange name> <connection id> [<close code:default=1000>] [<close reason>]\n"
-                << "list <exchange name>\n"
-                << "show <exchange name> <connection id>\n"
-                << "help: Display this help text\n"
-                << "quit: Exit the program\n"
-                << endl;
+            displayHelp();
         }
-        else if (input.substr(0,7) == "connect") {
-            string exchange_name = input.substr(8);
-            tickerReceiver.connect(exchange_name);
+        else if (input.substr(0, 7) == "connect") {
+            stringstream ss(input);
+            string cmd;
+            string exchangeName;
+
+            ss >> cmd >> exchangeName;
+
+            tickerReceiver.connect(exchangeName);
         }
         else if (input.substr(0, 9) == "subscribe") {
             stringstream ss(input);
@@ -65,8 +88,13 @@ int main() {
 
             tickerReceiver.close(exchangeName, id, static_cast<websocketpp::close::status::value>(close_code), reason);
         }
-        else if (input.substr(0,4) == "list") {
-            string exchangeName = input.substr(5);
+        else if (input.substr(0, 4) == "list") {
+            stringstream ss(input);
+            string cmd;
+            string exchangeName;
+
+            ss >> cmd >> exchangeName;
+
             tickerReceiver.list_open_connection_ids(exchangeName);
         }
         else if (input.substr(0,4) == "show") {
