@@ -1,42 +1,88 @@
 #include "ticker_receiver.h"
 
+using namespace std;
+
 int main() {
     TickerReceiver tickerReceiver;
 
-    tickerReceiver.connect("Kraken");
+    string input;
 
-   // Wait for 1 second before sending the payload
-    //std::this_thread::sleep_for(std::chrono::seconds(1));
+    while (true) {
+        cout << "Enter Command: ";
+        getline(cin, input);
 
-//     tickerReceiver.connect("Kraken");
+        if (input == "quit") {
+            break;
+        }
+        else if (input == "help") {
+            cout
+                << "\nCommand List:\n"
+                << "connect <exchange name>\n"
+                << "subscribe <exchange name> <connection id> <currency pair>\n"
+                << "unsubscribe <exchange name> <connection id> <currency pair>\n"
+                << "close <exchange name> <connection id> [<close code:default=1000>] [<close reason>]\n"
+                << "list <exchange name>\n"
+                << "show <exchange name> <connection id>\n"
+                << "help: Display this help text\n"
+                << "quit: Exit the program\n"
+                << endl;
+        }
+        else if (input.substr(0,7) == "connect") {
+            string exchange_name = input.substr(8);
+            tickerReceiver.connect(exchange_name);
+        }
+        else if (input.substr(0, 9) == "subscribe") {
+            stringstream ss(input);
+            string cmd;
+            string exchangeName;
+            int id;
+            string currencyPair;
 
-//    // Wait for 1 second before sending the payload
-//     std::this_thread::sleep_for(std::chrono::seconds(1));
+            ss >> cmd >> exchangeName >> id >> currencyPair;
 
+            tickerReceiver.subscribe(exchangeName, id, currencyPair);
+        }
+        else if (input.substr(0, 11) == "unsubscribe") {
+            stringstream ss(input);
+            string cmd;
+            string exchangeName;
+            int id;
+            string currencyPair;
 
-//     tickerReceiver.connect("Kraken");
+            ss >> cmd >> exchangeName >> id >> currencyPair;
 
-   // Wait for 1 second before sending the payload
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+            tickerReceiver.unsubscribe(exchangeName, id, currencyPair);
+        }
+        else if (input.substr(0, 5) == "close") {
+            stringstream ss(input);
+            string cmd;
+            string exchangeName;
+            int id;
+            int close_code = websocketpp::close::status::normal;
+            string reason;
 
-    tickerReceiver.connect("Kraken");
+            ss >> cmd >> exchangeName >> id >> close_code >> reason;
 
+            tickerReceiver.close(exchangeName, id, static_cast<websocketpp::close::status::value>(close_code), reason);
+        }
+        else if (input.substr(0,4) == "list") {
+            string exchangeName = input.substr(5);
+            tickerReceiver.list_open_connection_ids(exchangeName);
+        }
+        else if (input.substr(0,4) == "show") {
+            stringstream ss(input);
+            string cmd;
+            string exchangeName;
+            int id;
 
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+            ss >> cmd >> exchangeName >> id;
 
-    tickerReceiver.subscribe("Kraken", 0, "ETH/USDT");
-
-    tickerReceiver.subscribe("Kraken", 1, "DOGE/USDT");
-    // tickerReceiver.subscribe("Kraken", 1, "BTC/USDT");
-    // tickerReceiver.subscribe("Kraken", 2, "ETH/USDT");
-
-    // To demonstrate unsubscription, uncomment the line below:
-    // tickerReceiver.unsubscribe("Kraken", "ETH/USDT");
-
-
-   // Wait for 1 second before sending the payload
-    std::this_thread::sleep_for(std::chrono::seconds(300));
-
+            tickerReceiver.show_connection_metadata(exchangeName, id);
+        }
+        else {
+            cout << "> Unrecognized Command" << endl;
+        }
+    }
 
     return 0;
 }

@@ -28,6 +28,8 @@ public:
     std::string get_status() const;
     void record_sent_message(std::string message);
 
+    void log_message(const std::string& message);
+
     friend std::ostream & operator<< (std::ostream & out, connection_metadata const & data);
 
 private:

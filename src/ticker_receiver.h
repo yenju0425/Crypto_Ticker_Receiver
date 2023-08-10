@@ -17,17 +17,18 @@ struct Ticker {
 class TickerReceiver {
 public:
     TickerReceiver();
+    ~TickerReceiver();
 
-    Exchange* getExchange(const std::string& exchangeName);
+    Exchange* get_exchange(const std::string& exchangeName);
+
+   void connect(const std::string& exchangeName);
+    void close(const std::string& exchangeName, const int& id, websocketpp::close::status::value code, const std::string& reason);
 
     void subscribe(const std::string& exchangeName, const int& id, const std::string& currencyPair);
     void unsubscribe(const std::string& exchangeName, const int& id, const std::string& currencyPair);
 
-    void connect(const std::string& exchangeName);
-    void close(const std::string& exchangeName);
-
-    void showAllConnectionIds(const std::string& exchange);
-
+    void list_open_connection_ids(const std::string& exchangeName);
+    void show_connection_metadata(const std::string& exchangeName, const int& id);
 
 private:
     std::unordered_map<std::string, Exchange*> exchanges;

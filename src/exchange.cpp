@@ -6,11 +6,14 @@ using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 using websocketpp::lib::bind;
 
-typedef map<int,connection_metadata::ptr> con_list;
+typedef map<int, connection_metadata::ptr> con_list;
 typedef websocketpp::client<websocketpp::config::asio_tls_client> client;
 typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> context_ptr;
 
-string Exchange::getName() const {
+Exchange::~Exchange() {
+}
+
+string Exchange::get_name() const {
     return m_name;
 }
 
@@ -19,11 +22,11 @@ KrakenExchange::KrakenExchange() {
     m_url = "wss://ws.kraken.com";
     m_next_id = 0;
 
-    m_endpoint.clear_access_channels(websocketpp::log::alevel::all);  // Disables logging of all non-error events.
-    m_endpoint.clear_error_channels(websocketpp::log::elevel::all);   // Disables logging of all error events.
-    m_endpoint.init_asio();                                           // Initializes the Asio transport policy.
-    m_endpoint.start_perpetual();                                     // Starts the m_endpoint processing thread.
-    m_endpoint.set_tls_init_handler(bind(&KrakenExchange::onTLSInit, this, m_url.c_str(), ::_1));
+    m_endpoint.clear_access_channels(websocketpp::log::alevel::all);
+    m_endpoint.clear_error_channels(websocketpp::log::elevel::all);
+    m_endpoint.init_asio();
+    m_endpoint.start_perpetual();
+    m_endpoint.set_tls_init_handler(bind(&KrakenExchange::on_tls_init, this, m_url.c_str(), ::_1));
 
     m_thread = websocketpp::lib::make_shared<websocketpp::lib::thread>(&client::run, &m_endpoint); // This is necessary to run the WebSocket event loop in a separate thread.
 }
@@ -33,17 +36,13 @@ KrakenExchange::~KrakenExchange() {
         
     for (con_list::const_iterator it = m_connection_list.begin(); it != m_connection_list.end(); ++it) {
         if (it->second->get_status() != "Open") {
-            // Only close open connections
             continue;
         }
-        
-        cout << "> Closing connection " << it->second->get_id() << endl;
         
         websocketpp::lib::error_code ec;
         m_endpoint.close(it->second->get_hdl(), websocketpp::close::status::going_away, "", ec);
         if (ec) {
-            cout << "> Error closing connection " << it->second->get_id() << ": "  
-                        << ec.message() << endl;
+            cout << "> Error closing connection " << it->second->get_id() << ": " << ec.message() << endl;
         }
     }
     
@@ -67,19 +66,19 @@ int KrakenExchange::connect() {
         &m_endpoint,
         ::_1
     ));
-    con->set_open_handler(bind(
+    con->set_open_handler(bind( // triggered when connection is successfully established
         &connection_metadata::on_open,
         metadata_ptr,
         &m_endpoint,
         ::_1
     ));
-    con->set_fail_handler(bind(
+    con->set_fail_handler(bind( // triggered when the connection fails, such as when the server is unreachable or the internet connection is lost
         &connection_metadata::on_fail,
         metadata_ptr,
         &m_endpoint,
         ::_1
     ));
-    con->set_close_handler(bind(
+    con->set_close_handler(bind( // triggered when the connection is closed
         &connection_metadata::on_close,
         metadata_ptr,
         &m_endpoint,
@@ -112,7 +111,7 @@ void KrakenExchange::close(int id, websocketpp::close::status::value code, strin
     }
 }
 
-void KrakenExchange::subscribeTicker(const int& id, const string& currencyPair) {
+void KrakenExchange::subscribe_ticker(const int& id, const string& currencyPair) {
     websocketpp::lib::error_code ec;
 
     con_list::iterator metadata_it = m_connection_list.find(id);
@@ -128,9 +127,11 @@ void KrakenExchange::subscribeTicker(const int& id, const string& currencyPair) 
         cout << "> Error sending message: " << ec.message() << endl;
         return;
     }
+
+    metadata_it->second->record_sent_message(payload);
 }
 
-void KrakenExchange::unsubscribeTicker(const int& id, const string& currencyPair) {
+void KrakenExchange::unsubscribe_ticker(const int& id, const string& currencyPair) {
     websocketpp::lib::error_code ec;
 
     con_list::iterator metadata_it = m_connection_list.find(id);
@@ -146,6 +147,18 @@ void KrakenExchange::unsubscribeTicker(const int& id, const string& currencyPair
         cout << "> Error sending message: " << ec.message() << endl;
         return;
     }
+
+    metadata_it->second->record_sent_message(payload);
+}
+
+vector<int> KrakenExchange::get_open_connection_ids() const {
+    vector<int> ids;
+    for (con_list::const_iterator it = m_connection_list.begin(); it != m_connection_list.end(); ++it) {
+        if (it->second->get_status() == "Open") {
+            ids.push_back(it->first);
+        }
+    }
+    return ids;
 }
 
 connection_metadata::ptr KrakenExchange::get_metadata(int id) const {
@@ -157,7 +170,7 @@ connection_metadata::ptr KrakenExchange::get_metadata(int id) const {
     }
 }
 
-context_ptr KrakenExchange::onTLSInit(const char * hostname, websocketpp::connection_hdl) {
+context_ptr KrakenExchange::on_tls_init(const char * hostname, websocketpp::connection_hdl) {
     context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
     return ctx;
 }
