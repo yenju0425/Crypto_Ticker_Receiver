@@ -17,7 +17,6 @@ public:
 
     connection_metadata(int id, websocketpp::connection_hdl hdl, std::string uri, Exchange* exchange);
 
-    context_ptr on_tls_init(client* c, websocketpp::connection_hdl hdl);
     void on_open(client* c, websocketpp::connection_hdl hdl);
     void on_fail(client* c, websocketpp::connection_hdl hdl);
     void on_close(client* c, websocketpp::connection_hdl hdl);

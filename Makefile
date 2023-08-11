@@ -1,6 +1,6 @@
 # Compiler and flags
 CC := g++
-CFLAGS := -std=c++11 -Wall -Wextra -I$(SRC_DIR) -I/usr/local/include
+CFLAGS := -std=c++11 -Wall -Wextra -Wpedantic -O3
 LDFLAGS := -L/usr/local/lib -lboost_system -lboost_thread-mt -lssl -lcrypto
 
 # Directories

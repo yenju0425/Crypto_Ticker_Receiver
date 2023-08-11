@@ -26,7 +26,7 @@ KrakenExchange::KrakenExchange() {
     m_endpoint.clear_error_channels(websocketpp::log::elevel::all);
     m_endpoint.init_asio();
     m_endpoint.start_perpetual();
-    m_endpoint.set_tls_init_handler(bind(&KrakenExchange::on_tls_init, this, m_url.c_str(), ::_1));
+    m_endpoint.set_tls_init_handler(bind(&KrakenExchange::on_tls_init, this, ::_1));
 
     m_thread = websocketpp::lib::make_shared<websocketpp::lib::thread>(&client::run, &m_endpoint); // This is necessary to run the WebSocket event loop in a separate thread.
 }
@@ -60,12 +60,6 @@ int KrakenExchange::connect() {
     int new_id = m_next_id++;
     connection_metadata::ptr metadata_ptr = websocketpp::lib::make_shared<connection_metadata>(new_id, con->get_handle(), m_url, this);
     m_connection_list[new_id] = metadata_ptr;
-    con->set_tls_init_handler(bind(
-        &connection_metadata::on_tls_init,
-        metadata_ptr,
-        &m_endpoint,
-        ::_1
-    ));
     con->set_open_handler(bind( // triggered when connection is successfully established
         &connection_metadata::on_open,
         metadata_ptr,
@@ -170,7 +164,15 @@ connection_metadata::ptr KrakenExchange::get_metadata(int id) const {
     }
 }
 
-context_ptr KrakenExchange::on_tls_init(const char * hostname, websocketpp::connection_hdl) {
+context_ptr KrakenExchange::on_tls_init(websocketpp::connection_hdl) {
     context_ptr ctx = websocketpp::lib::make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
+    try {
+        ctx->set_options(boost::asio::ssl::context::default_workarounds |
+                         boost::asio::ssl::context::no_sslv2 |
+                         boost::asio::ssl::context::no_sslv3 |
+                         boost::asio::ssl::context::single_dh_use);
+    } catch (exception &e) {
+        cout << "Error in context pointer: " << e.what() << endl;
+    }
     return ctx;
 }

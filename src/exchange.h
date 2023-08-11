@@ -45,7 +45,7 @@ public:
     std::vector<int> get_open_connection_ids() const override;
 
 private:
-    context_ptr on_tls_init(const char* hostname, websocketpp::connection_hdl);
+    context_ptr on_tls_init(websocketpp::connection_hdl);
 
     std::string m_url;
 

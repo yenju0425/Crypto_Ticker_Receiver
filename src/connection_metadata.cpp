@@ -14,22 +14,9 @@ connection_metadata::connection_metadata(int id, websocketpp::connection_hdl hdl
     : m_id(id), m_hdl(hdl), m_status("Connecting"), m_uri(uri), m_server("N/A"), m_exchange(exchange) {
 
     string path = __fs::filesystem::current_path().string();
-    string filename = path + "/" + exchange->get_name() + "_" + to_string(id) + ".txt";
+    string filename = path + "/" + m_exchange->get_name() + "_" + to_string(id) + ".txt";
     
     m_message_file.open(filename, ios::out);
-}
-
-context_ptr connection_metadata::on_tls_init(client* c, websocketpp::connection_hdl hdl) {
-    context_ptr ctx = make_shared<boost::asio::ssl::context>(boost::asio::ssl::context::sslv23);
-    try {
-        ctx->set_options(boost::asio::ssl::context::default_workarounds |
-                        boost::asio::ssl::context::no_sslv2 |
-                        boost::asio::ssl::context::no_sslv3 |
-                        boost::asio::ssl::context::single_dh_use);
-    } catch (exception &e) {
-        cout << "> Error in context pointer: " << e.what() << endl;
-    }
-    return ctx;
 }
 
 void connection_metadata::on_open(client* c, websocketpp::connection_hdl hdl) {
