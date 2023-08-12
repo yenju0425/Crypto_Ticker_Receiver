@@ -1,7 +1,7 @@
 # Compiler and flags
 CC := g++
 CFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -O3
-LDFLAGS := -L/usr/local/lib -lboost_system -lboost_thread-mt -lssl -lcrypto
+LDFLAGS := -L/usr/local/lib -lboost_system -lboost_thread -lssl -lcrypto
 
 # Directories
 SRC_DIR := src
