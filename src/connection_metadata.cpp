@@ -13,7 +13,7 @@ typedef websocketpp::lib::shared_ptr<websocketpp::lib::asio::ssl::context> conte
 connection_metadata::connection_metadata(int id, websocketpp::connection_hdl hdl, string uri, Exchange* exchange)
     : m_id(id), m_hdl(hdl), m_status("Connecting"), m_uri(uri), m_server("N/A"), m_exchange(exchange) {
 
-    string path = __fs::filesystem::current_path().string();
+    string path = filesystem::current_path().string();
     string filename = path + "/" + m_exchange->get_name() + "_" + to_string(id) + ".txt";
     
     m_message_file.open(filename, ios::out);
