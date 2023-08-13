@@ -1,7 +1,24 @@
 # Part 1: Cryptocurrency Ticker Receiver Library in C++
+* 環境安裝：
+    * 本專案主要在 MacOS 的環境開發，若欲使用 MacOS 檢視本專案，請切換至 main 分支
+        * Dependencies 安裝:
+            * `brew install boost`
+            * `brew install websocketpp`
+    * 考量到環境問題，後續新增了能夠在 ubuntu 環境運行的分支，分支名稱：ubuntu
+        * Dependencies 安裝:
+            * `sudo apt install libssl-dev`
+            * `sudo apt install libboost-all-dev`
+            * `sudo apt install libwebsocketpp-dev`
+    * 若在編譯過程中遇到錯誤，請根據提示安裝相應的函式庫，即可解決問題
+    * 本專案已在一個展示用的開發機完成環境安裝和代碼部署，連上機器後可以直接檢視本專案：
+        * 連線：`ssh ubuntu@3.25.245.168`
+        * 密碼：`vici0000`
+        * 註記：
+            * 此展示用的開發機由於硬體設備受限，請勿在此環境進行編譯，機器會因此卡死
+            * 連上機器後 `cd Assignment`，可直接執行 `./bin/ticker_app` 開始操作程式
 * 原始碼請參考 `./src` 內的所有檔案
-* 編譯方式可以採用整體重新編譯: `make clean; make` (須先安裝 websocketpp 套件)
-* `./bin` 包含預先編譯好的執行檔，執行方式 `./bin/ticker_app`
+* 編譯方式可以採用整體重新編譯: `make clean; make` (須先安裝相關套件，請勿在展示用開發機進行編譯)
+* `./bin` 包含預先編譯好的執行檔，執行方式 `./bin/ticker_app` (須切換至環境對應分支)
 * 程式啟動以後會有詳細的操作說明，請依照說明操作 (啟動後輸入 `cheatsheet` 查看指令範例)
 
 # Part 2: Explain how you would approach identifying performance bottlenecks in a library. Consider a library that you've recently worked with that exhibited slower performance than expected.
