@@ -21,7 +21,7 @@ public:
 
     Exchange* get_exchange(const std::string& exchangeName);
 
-   void connect(const std::string& exchangeName);
+    void connect(const std::string& exchangeName);
     void close(const std::string& exchangeName, const int& id, websocketpp::close::status::value code, const std::string& reason);
 
     void subscribe(const std::string& exchangeName, const int& id, const std::string& currencyPair);
